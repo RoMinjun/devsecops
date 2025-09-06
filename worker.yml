@@ -1,0 +1,63 @@
+Description: Worker node stack for a k3s cluster. Imports master SG and IP.
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0bbdd8c17ed981ef9
+    Description: Ubuntu Server 22.04 LTS AMI
+  InstanceType:
+    Type: String
+    Default: t2.medium
+    Description: EC2 instance type for the node
+  ScriptUrl:
+    Type: String
+    Default: https://raw.githubusercontent.com/rominjun/devsecops/main/k3s-install.sh
+    Description: URL to fetch k3s-install.sh from
+
+Resources:
+  NodeInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - LabRole
+
+  WorkerNode:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue k3s-vpc:PrivateSubnet
+      SecurityGroupIds:
+        - Fn::ImportValue: k3s-master:SecurityGroupId
+      IamInstanceProfile: !Ref NodeInstanceProfile
+      Tags:
+        - Key: Name
+          Value: k3s-worker
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            set -e
+            # Ensure hostname is set before k3s install
+            hostnamectl set-hostname cn2
+
+            apt-get update -y
+            apt-get install -y curl awscli
+            TOKEN=$(aws ssm get-parameter --region ${AWS::Region} --name /k3s/token --with-decryption --query 'Parameter.Value' --output text)
+            curl -o /usr/local/bin/k3s.sh ${ScriptUrl}
+            chmod +x /usr/local/bin/k3s.sh
+            /usr/local/bin/k3s.sh agent ${MasterIP} $TOKEN
+          - { MasterIP: { "Fn::ImportValue": "k3s-master:MasterPrivateIP" } }
+
+Outputs:
+  WorkerPrivateIP:
+    Description: Private IP address of the worker node
+    Value: !GetAtt WorkerNode.PrivateIp
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", WorkerPrivateIP ] ]
+
