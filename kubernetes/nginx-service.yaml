@@ -4,9 +4,11 @@ metadata:
   name: ngnix-service
   namespace: 531630-app
 spec:
-  type: LoadBalancer
   selector:
     app: quoterxp
+  type: NodePort
   ports:
-  - port: 8080
+  - protocol: TCP
+    port: 5000
+    nodePort: 30000
     targetPort: 5000
