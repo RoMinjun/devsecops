@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Provision a simple two-node k3s Kubernetes cluster using kubernetes.sh and LabRole IAM.
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC where the nodes will be launched
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet for both nodes (must belong to the VPC)
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0b0af3577fe5e3532
+    Description: Ubuntu Server 22.04 LTS AMI
+  InstanceType:
+    Type: String
+    Default: t2.medium
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t3.micro
+      - t3.small
+      - t3.medium
+    Description: EC2 instance type for the nodes
+  ScriptUrl:
+    Type: String
+    Default: https://raw.githubusercontent.com/CHANGEME/devsecops/main/kubernetes.sh
+    Description: URL to fetch kubernetes.sh from (update with your repository URL)
+
+Resources:
+  KubernetesSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and Kubernetes control plane access
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 6443
+          ToPort: 6443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 10250
+          ToPort: 10250
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 30000
+          ToPort: 32767
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  NodeInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - LabRole
+
+  MasterNode:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref KubernetesSecurityGroup
+      IamInstanceProfile: !Ref NodeInstanceProfile
+      Tags:
+        - Key: Name
+          Value: k3s-master
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          apt-get update -y
+          apt-get install -y curl awscli
+          curl -o /usr/local/bin/kubernetes.sh ${ScriptUrl}
+          chmod +x /usr/local/bin/kubernetes.sh
+          /usr/local/bin/kubernetes.sh server
+          TOKEN=$(cat /var/lib/rancher/k3s/server/node-token)
+          aws ssm put-parameter --region ${AWS::Region} --name /k3s/token --type SecureString --value "$TOKEN" --overwrite
+
+  WorkerNode:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref KubernetesSecurityGroup
+      IamInstanceProfile: !Ref NodeInstanceProfile
+      Tags:
+        - Key: Name
+          Value: k3s-worker
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          apt-get update -y
+          apt-get install -y curl awscli
+          TOKEN=$(aws ssm get-parameter --region ${AWS::Region} --name /k3s/token --with-decryption --query 'Parameter.Value' --output text)
+          curl -o /usr/local/bin/kubernetes.sh ${ScriptUrl}
+          chmod +x /usr/local/bin/kubernetes.sh
+          /usr/local/bin/kubernetes.sh agent ${MasterNode.PrivateIp} $TOKEN
+
+Outputs:
+  MasterPublicIP:
+    Description: Public IP address of the master node
+    Value: !GetAtt MasterNode.PublicIp
+  WorkerPublicIP:
+    Description: Public IP address of the worker node
+    Value: !GetAtt WorkerNode.PublicIp
