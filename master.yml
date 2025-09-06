@@ -99,4 +99,3 @@ Outputs:
     Value: !GetAtt MasterNode.PublicIp
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", MasterPublicIP ] ]
-
