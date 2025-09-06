@@ -1,14 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: quoterxp
   namespace: 531630-app
 spec:
+  type: LoadBalancer
   selector:
     app: quoterxp
-  type: NodePort
   ports:
-  - protocol: TCP
-    port: 5000
-    nodePort: 30000
+  - port: 8080
     targetPort: 5000
+    protocol: TCP
