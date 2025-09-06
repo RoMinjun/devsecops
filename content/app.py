@@ -2,6 +2,7 @@ from flask import Flask, request, redirect, make_response
 import sqlite3
 import urllib
 import quoter_templates as templates
+from markupsafe import escape
 
 # Run using `poetry install && poetry run flask run --reload`
 app = Flask(__name__)
@@ -33,7 +34,10 @@ def check_authentication():
 @app.route("/")
 def index():
     quotes = db.execute("select id, text, attribution from quotes order by id").fetchall()
-    return templates.main_page(quotes, request.user_id, request.args.get('error'))
+    # Sanitize potential error message from query string to prevent XSS
+    error_param = request.args.get('error')
+    safe_error = escape(error_param) if error_param is not None else None
+    return templates.main_page(quotes, request.user_id, safe_error)
 
 
 # The quote comments page
@@ -48,7 +52,11 @@ def get_comments_page(quote_id):
 @app.route("/quotes", methods=["POST"])
 def post_quote():
     with db:
-        db.execute(f"""insert into quotes(text,attribution) values("{request.form['text']}","{request.form['attribution']}")""")
+        # Use parameterized query to prevent SQL injection
+        db.execute(
+            "insert into quotes(text,attribution) values(?, ?)",
+            (request.form['text'], request.form['attribution'])
+        )
     return redirect("/#bottom")
 
 
