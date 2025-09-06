@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: student-devsecops
+  name: 531630-devsecops
+  namespace: 531630-app
   labels:
     app: quoterxp
 spec:
@@ -18,10 +19,10 @@ spec:
     spec:
       containers:
       - name: quoterxp
-        image: hhmbroekman/student-app:latest
+        image: rominjun/531630-app:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 5000
       imagePullSecrets:
-        - name: regcred
+        - name: 531630-regsec
          

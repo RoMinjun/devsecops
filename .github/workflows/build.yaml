@@ -1,8 +1,6 @@
 name: CI/CD
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
+on: push
 
 jobs:
   build:
@@ -28,7 +26,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            hhmbroekman/student-app:latest
+            rominjun/531630-app:latest
 
   test:
     name: Test
@@ -46,12 +44,11 @@ jobs:
 
       - name: Run container and smoke test
         run: |
-          docker run -d --name student-app -p 80:5000 hhmbroekman/student-app:latest
+          docker run -d --name 531630-app -p 80:5000 rominjun/531630-app:latest
           # give it a moment to start
           sleep 10
-          curl -fsS http://localhost/ || (docker logs student-app; exit 1)
-          docker stop student-app >/dev/null 2>&1 || true
-          docker rm student-app >/dev/null 2>&1 || true
+          curl http://localhost
+          docker ps -aq | xargs docker stop | xargs docker rm
 
   deploy:
     name: Deploy
