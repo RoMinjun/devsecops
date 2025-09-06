@@ -1,0 +1,113 @@
+Description: Provision a simple two-node k3s k3s cluster using k3s.sh and LabRole IAM.
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0bbdd8c17ed981ef9
+    Description: Ubuntu Server 22.04 LTS AMI
+  InstanceType:
+    Type: String
+    Default: t2.medium
+    Description: EC2 instance type for the nodes
+  ScriptUrl:
+    Type: String
+    Default: https://raw.githubusercontent.com/rominjun/devsecops/main/k3s-install.sh
+    Description: URL to fetch k3s.sh from
+
+Resources:
+  k3sSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and k3s control plane access
+      VpcId: !ImportValue k3s-vpc:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 6443
+          ToPort: 6443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 10250
+          ToPort: 10250
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 30000
+          ToPort: 32767
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  NodeInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - LabRole
+
+  MasterNode:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue k3s-vpc:PublicSubnet
+      SecurityGroupIds:
+        - !Ref k3sSecurityGroup
+      IamInstanceProfile: !Ref NodeInstanceProfile
+      Tags:
+        - Key: Name
+          Value: k3s-master
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          apt-get update -y
+          apt-get install -y curl awscli
+          curl -o /usr/local/bin/k3s.sh ${ScriptUrl}
+          chmod +x /usr/local/bin/k3s.sh
+          /usr/local/bin/k3s.sh server
+          TOKEN=$(cat /var/lib/rancher/k3s/server/node-token)
+          aws ssm put-parameter --region ${AWS::Region} --name /k3s/token --type SecureString --value "$TOKEN" --overwrite
+
+  WorkerNode:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
+      SubnetId: !ImportValue k3s-vpc:PrivateSubnet
+      SecurityGroupIds:
+        - !Ref k3sSecurityGroup
+      IamInstanceProfile: !Ref NodeInstanceProfile
+      Tags:
+        - Key: Name
+          Value: k3s-worker
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          apt-get update -y
+          apt-get install -y curl awscli
+          TOKEN=$(aws ssm get-parameter --region ${AWS::Region} --name /k3s/token --with-decryption --query 'Parameter.Value' --output text)
+          curl -o /usr/local/bin/k3s.sh ${ScriptUrl}
+          chmod +x /usr/local/bin/k3s.sh
+          /usr/local/bin/k3s.sh agent ${MasterNode.PrivateIp} $TOKEN
+
+Outputs:
+  MasterPublicIP:
+    Description: Public IP address of the master node
+    Value: !GetAtt MasterNode.PublicIp
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", MasterPublicIP ] ]
+  WorkerPrivateIP:
+    Description: Private IP address of the worker node
+    Value: !GetAtt WorkerNode.PrivateIp
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", WorkerPrivateIP ] ]
