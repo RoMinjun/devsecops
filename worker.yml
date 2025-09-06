@@ -31,7 +31,7 @@ Resources:
       InstanceType: !Ref InstanceType
       ImageId: !Ref ImageId
       KeyName: !Ref KeyName
-      SubnetId: !ImportValue k3s-vpc:PrivateSubnet
+      SubnetId: !ImportValue k3s-vpc:PublicSubnet
       SecurityGroupIds:
         - Fn::ImportValue: k3s-master:SecurityGroupId
       IamInstanceProfile: !Ref NodeInstanceProfile
@@ -60,4 +60,3 @@ Outputs:
     Value: !GetAtt WorkerNode.PrivateIp
     Export:
       Name: !Join [ ":", [ !Ref "AWS::StackName", WorkerPrivateIP ] ]
-
