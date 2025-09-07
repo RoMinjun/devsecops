@@ -1,6 +1,11 @@
 name: CI/CD
 
-on: push
+on:
+  push:
+    branches:
+      - week3
+    paths-ignore:
+      - '.github/**'
 
 jobs:
   build:
