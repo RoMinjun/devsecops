@@ -30,7 +30,7 @@ $ echo "<hash>  actions-runner-linux-x64-2.328.0.tar.gz" | shasum -a 256 -c
 $ tar xzf ./actions-runner-linux-x64-2.328.0.tar.gz
 
 # Create the runner and start the configuration experience
-$ ./config.sh --url https://github.com/RoMinjun/devsecops --token AZWGS5G5K2ZE6C5QZPYXXHDIXR3PS
+$ ./config.sh --url https://github.com/RoMinjun/devsecops --token <token>
 ```
 
 ## Create systemd service instead of run.sh to make it persistent
