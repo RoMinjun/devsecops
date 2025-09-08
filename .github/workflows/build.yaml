@@ -81,7 +81,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: self-hosted
-    needs: [test]
+    needs: [test, scan]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -96,7 +96,7 @@ k create ns 531630-app
 ```
 
 ## Create docker-registry secret
-screenshots in the word doc yes
+screenshots in the word doc
 ```shell
 k -n 531630-app create secret docker-registry <studentnumber>-regsec --docker-server=docker.io --docker-username=<rominjun> --docker-password='<passwd>' --docker-email=<email>
 ```
