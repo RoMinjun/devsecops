@@ -1,0 +1,91 @@
+{
+	"info": {
+		"_postman_id": "b6fc42b5-5705-4a8f-99d9-c8074f47d914",
+		"name": "CI/CD",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "48270125-b6fc42b5-5705-4a8f-99d9-c8074f47d914"
+	},
+	"item": [
+		{
+			"name": "Check App",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2983d156-3734-4835-8c36-27ee989e03a1",
+						"exec": [
+							"// Check if status code is 200\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Check if response body contains specific text\r",
+							"pm.test(\"531630/Boer Meinders\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"531630/Boer Meinders\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"id": "9c6a8edc-76cc-42d9-b2f2-274b656de00d",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://44.197.246.82:30000/",
+					"protocol": "http",
+					"host": [
+						"44",
+						"197",
+						"246",
+						"82"
+					],
+					"port": "30000",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "58237871-1ee0-4e94-9f9d-33a82141e56a",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "f8e02476-494a-45d9-a971-273e06fd52bf",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"// Check if status code is 200\r",
+					"pm.test(\"Status code is 200\", function () {\r",
+					"    pm.response.to.have.status(200);\r",
+					"});\r",
+					"\r",
+					"// Check if response body contains specific text\r",
+					"pm.test(\"531630/Boer Meinders\", function () {\r",
+					"    pm.expect(pm.response.text()).to.include(\"531630/Boer Meinders\");\r",
+					"});\r",
+					""
+				]
+			}
+		}
+	]
+}
