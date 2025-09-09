@@ -82,7 +82,7 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          sudo kubectl delete deployment --all || true
+          sudo kubectl -n 531630-app delete deployment --all || true
           sudo kubectl apply -f ${{ github.workspace }}/kubernetes/deployment.yaml --force
           sudo kubectl apply -f ${{ github.workspace }}/kubernetes/nginx-service.yaml --force
 
