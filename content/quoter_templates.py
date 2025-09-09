@@ -75,7 +75,7 @@ def page(content,user_id,title,error=None):
 
 <header>
   <div class="title">
-    <a class="home" href="/">Quoter XP - 531630/Boer Meinders - Private</a>
+    <a class="home" href="/">Quoter XP - 531631/Boer Meinders - Private repo</a>
     {links}
   </div>
 </header>
