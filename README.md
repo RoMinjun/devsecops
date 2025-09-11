@@ -1,5 +1,5 @@
 # devsecops
-boer meinders
+boer meinders henk
 
 # Requirements
 - Requires awscli + lab
