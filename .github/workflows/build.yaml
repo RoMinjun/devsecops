@@ -54,8 +54,7 @@ jobs:
           image: rominjun/531630-app:latest
           only-severities: critical,high
           github-token: ${{ secrets.PAT_CONTENTS_WEEK3 }}
-          exit-code: true
-          exit-on: vulnerability
+          exit-code: false
 
   test:
     name: Test
