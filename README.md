@@ -1,5 +1,5 @@
 # devsecops
-boer meinders == Henk
+boer meinders
 
 # Requirements
 - Requires awscli + lab

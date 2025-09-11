@@ -3,7 +3,7 @@ name: CI/CD
 on:
   push:
     branches:
-      - week3
+      - week4
     paths-ignore:
       - '.github/**'
 
