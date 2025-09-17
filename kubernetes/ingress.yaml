@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: 531630-app
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - app.romin.local
+      secretName: app-tls
+  rules:
+    - host: app.romin.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quoterxp-service
+                port:
+                  number: 5000
