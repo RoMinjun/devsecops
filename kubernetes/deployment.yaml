@@ -18,11 +18,10 @@ spec:
         app: quoterxp
     spec:
       containers:
-      - name: quoterxp
-        image: rominjun/531630-app:latest
-        imagePullPolicy: Always
-        ports:
-          - containerPort: 5000
+        - name: quoterxp
+          image: rominjun/531630-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
       imagePullSecrets:
         - name: 531630-regsec
-         

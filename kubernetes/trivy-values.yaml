@@ -1,0 +1,11 @@
+trivy:
+  cache:
+    persistence: false # disable persistence bcs of pod evictions
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus
+
+operator:
+  metricsVulnIdEnabled: true

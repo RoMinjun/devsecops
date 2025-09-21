@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sec-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: k8s-security.rules
+      rules:
+        - alert: PodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total[1m]) > 1
+          for: 1m
+          labels:
+            severity: critical
+            source: sec-alerts
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash looping"
+            description: "Container {{ $labels.container }} restarted >1 times in 1m."
+
+        - alert: HighContainerCPU
+          expr: rate(container_cpu_usage_seconds_total{container!=""}[5m]) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+            source: sec-alerts
+          annotations:
+            summary: "High CPU usage in {{ $labels.pod }} / {{ $labels.container }}"
+            description: "Container {{ $labels.container }} is consuming more than 80% of one core for over 5 minutes."
