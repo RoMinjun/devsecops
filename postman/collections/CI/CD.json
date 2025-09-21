@@ -26,8 +26,19 @@
 							"\r",
 							"// Check if there's a stack trace leak\r",
 							"pm.test(\"No stack traces leaked\", () => {\r",
-							"  pm.expect(pm.response.text()).to.not.include(\"Traceback (most recent call last)\");\r",
+							"    pm.expect(pm.response.text()).to.not.include(\"Traceback (most recent call last)\");\r",
 							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "903ff6d8-72ac-497b-b31e-e0970257504b",
+						"exec": [
 							""
 						],
 						"type": "text/javascript",
