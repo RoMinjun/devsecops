@@ -24,6 +24,7 @@
 							"    pm.expect(pm.response.text()).to.include(\"531630/Boer Meinders\");\r",
 							"});\r",
 							"\r",
+							"// Check if there's a stack trace leak\r",
 							"pm.test(\"No stack traces leaked\", () => {\r",
 							"  pm.expect(pm.response.text()).to.not.include(\"Traceback (most recent call last)\");\r",
 							"});\r",
