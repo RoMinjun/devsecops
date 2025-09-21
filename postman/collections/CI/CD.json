@@ -20,8 +20,13 @@
 							"});\r",
 							"\r",
 							"// Check if response body contains specific text\r",
-							"pm.test(\"531630/Boer Meinders\", function () {\r",
+							"pm.test(\"Test text within site\", function () {\r",
 							"    pm.expect(pm.response.text()).to.include(\"531630/Boer Meinders\");\r",
+							"});\r",
+							"\r",
+							"// Check if there's a stack trace leak\r",
+							"pm.test(\"No stack traces leaked\", () => {\r",
+							"  pm.expect(pm.response.text()).to.not.include(\"Traceback (most recent call last)\");\r",
 							"});\r",
 							""
 						],
@@ -38,18 +43,15 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://44.197.246.82:30000/",
+					"raw": "http://3.231.56.130:30000",
 					"protocol": "http",
 					"host": [
-						"44",
-						"197",
-						"246",
-						"82"
+						"3",
+						"231",
+						"56",
+						"130"
 					],
-					"port": "30000",
-					"path": [
-						""
-					]
+					"port": "30000"
 				}
 			},
 			"response": []
